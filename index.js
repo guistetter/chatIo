@@ -4,6 +4,7 @@ const app = express()
 const mongoose = require('mongoose')
 mongoose.Promise = global.Promise 
 
+app.use(express.static('public'))
 app.set('view engine', 'ejs')
 
 app.get('/',(req, res) => {
