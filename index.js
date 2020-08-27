@@ -36,7 +36,7 @@ app.get('/room', (req, res) => {
     res.redirect('/')
   } else {
     //res.send(req.session)
-    res.render('home', {
+    res.render('room', {
       name: req.session.user.name
     })
   }
