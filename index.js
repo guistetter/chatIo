@@ -7,7 +7,7 @@ mongoose.Promise = global.Promise
 app.set('view engine', 'ejs')
 
 app.get('/',(req, res) => {
-  res.send('ola')
+  res.render('home')
 })
 
 //servidor só inicia apos o mongo iniciar
