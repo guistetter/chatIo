@@ -23,6 +23,7 @@ app.get('/',(req, res) => {
 })
 
 app.post('/', (req, res) => {
+  //auth - criarei depois... 
   console.log(req.body.name)
   req.session.user = {
     name: req.body.name
@@ -31,7 +32,14 @@ app.post('/', (req, res) => {
 })
 
 app.get('/room', (req, res) => {
-  res.send(req.session)
+  if(!req.session.user){
+    res.redirect('/')
+  } else {
+    //res.send(req.session)
+    res.render('home', {
+      name: req.session.user.name
+    })
+  }
 })
 
 //servidor só inicia apos o mongo iniciar
