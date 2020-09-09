@@ -8,6 +8,8 @@ require('dotenv/config')
 const http = require('http').Server(app)
 const io = require('socket.io')(http)
 
+const Room = require('./models/room')
+
 app.use(express.static('public'))
 app.use(bodyParser.json({extended: true}))
 app.use(bodyParser.urlencoded())
@@ -42,6 +44,20 @@ app.get('/room', (req, res) => {
       name: req.session.user.name
     })
   }
+})
+
+//pegando o evento de conexao, tratar e criar a sala
+io.on('connection', socket => {
+  socket.on('addRoom',roomName =>{
+    console.log('addRoomm', roomName)
+    const room = new Room({
+      name: roomName
+    })
+    room.save()
+    .then(() =>{
+      io.emit('newRoom', room)
+    })
+  })
 })
 
 //servidor só inicia apos o mongo iniciar
