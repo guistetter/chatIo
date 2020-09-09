@@ -50,7 +50,7 @@ app.get('/room', (req, res) => {
 io.on('connection', socket => {
     //pegando as salas e enviando pro usuario
   Room.find({},(err, rooms) =>{
-    socket.emit('rooList', rooms)
+    socket.emit('roomList', rooms)
   })
     //salvando a nova sala no banco
   socket.on('addRoom',roomName =>{
