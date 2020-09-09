@@ -55,10 +55,19 @@
     $(function(){
       //conectar no socket
       const socket = io()
+      //exibe a nova sala
+      socket.on('newRoom', room =>{
+        console.log(room)
+      })
+      //exibe as salas para o usuario
+      socket.on('roomList', rooms =>{
+      console.log(rooms)
+     })
+      //ouve o evento click no botaao para add
       $('.add-room').click(function(){
         const roomName = prompt('Informe o nome da sala')
         if(roomName){
-          // criando a nova sala com o socket
+          // cria uma nova sala
           socket.emit('addRoom', roomName)
         }
       })
