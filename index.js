@@ -5,6 +5,8 @@ const session = require('express-session')
 const mongoose = require('mongoose')
 mongoose.Promise = global.Promise 
 require('dotenv/config')
+const http = require('http').Server(app)
+const io = require('socket.io')(http)
 
 app.use(express.static('public'))
 app.use(bodyParser.json({extended: true}))
@@ -46,7 +48,7 @@ app.get('/room', (req, res) => {
 mongoose.connect('mongodb://localhost/chat-socketio',{
   useMongoClient: true
 }).then(() =>{
-  app.listen(3000,() => {
+  http.listen(3000,() => {
     console.log('chat running')
   })
 })
