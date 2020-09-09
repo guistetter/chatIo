@@ -48,6 +48,11 @@ app.get('/room', (req, res) => {
 
 //pegando o evento de conexao, tratar e criar a sala
 io.on('connection', socket => {
+    //pegando as salas e enviando pro usuario
+  Room.find({},(err, rooms) =>{
+    socket.emit('rooList', rooms)
+  })
+    //salvando a nova sala no banco
   socket.on('addRoom',roomName =>{
     console.log('addRoomm', roomName)
     const room = new Room({
