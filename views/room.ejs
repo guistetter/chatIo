@@ -56,6 +56,7 @@
       //conectar no socket
       const socket = io()
       let selectedRoom = ''
+
       //pegar permission para audio
       let audioPermission = false
       let mediRecorder
@@ -65,14 +66,33 @@
         .then(stream => {
           audioPermission = true
           mediaRecorder = new MediaRecorder(stream)
+          let chunks =  []
           mediaRecorder.ondataavailable = data => {
             //data received
+            chunks.push(data.data)
             console.log(data.data)
           }
-          mediaRecorder.onstrop = () => {
+          mediaRecorder.onstop = () => {
             //data stopped
-            console.log('audioRecorder stopped')
+          //   console.log('audioRecorder stopped')
+          //   socket.emit('sendAudio', {
+          //   data: chunks,
+          //   room: selectedRoom
+          // })
+          //reset chunck
+          //serializar o audio tb serve pra imagem.. é converter de binario para base 64
+          const reader = new window.FileReader()
+          const blob = new Blob(chunks,{type: 'audio/ogg; codec=opus'})
+          reader.readAsDataURL(blob)
+          reader.onloadend = () =>{
+            console.log('base64',reader.result)
+            socket.emit('sendAudio', {
+              data: reader.result,
+              room: selectedRoom
+            })
           }
+          chunks = []
+        }
           console.log('Ok audio permitido')
         }, err => {
           mediaRecorder = null
@@ -89,10 +109,11 @@
       })
       .mousedown(function(){
         console.log('down')
-        if(audioPermission){
+        if(audioPermission && selectedRoom !==''){
           mediaRecorder.start()
         }
       })
+
       $('.msg').keyup(function(key){
         console.log(key.keyCode)
         if(selectedRoom !== '' && key.keyCode === 13){
@@ -108,27 +129,46 @@
       //clicar em uma sala e entrar nela
       $('.room-list').on('click', '.room-item', function(){
         const roomId = $(this).attr('data-id')
-        socket.emit('join',roomId) 
+        socket.emit('join', roomId) 
         selectedRoom = roomId
+        //mostra notifications qdo clica na sala
+        $('#'+roomId+' .notifications').show()
+        $('#'+roomId+' .notifications span').text('0')
       })
 
       //Exibe a nova sala na lista do html
       const addRoom = (id, roomName) =>{
-        $('.room-list').append('<li data-id="'+id+'" class="room-item">'+roomName+'<span class="notifications"> (2)</span></li>')
+        $('.room-list').append('<li id="'+id+'" data-id="'+id+'" class="room-item">'+roomName+'<span class="notifications">(<span>0</span>)</span></li>')
+        //esconde notifications qdo cria uma sala nova
+        $('#'+id+' .notifications').hide()
       }
-      //Exibe a msg no html
-      const addMsg = (msg) =>{
-        const html =`
-        <div class="message">
-          <span class="author">${msg.author}</span><br>
-          <span class="msg-body">${msg.message}</span>
-        </div>`
-        $('.messages').append(html)
-      }
+
       //recebe uma nova sala
       socket.on('newRoom',room =>{
         addRoom(room._id, room.name)
       })
+
+      //Exibe a msg no html
+      const renderMsg = (type, msg) => {
+        if(type==='text'){
+          return msg
+        } else if(type==='audio'){
+          return`
+          <audio src="${msg}" controls="true"></audio>
+          `
+        }
+        return ''
+      }
+
+      const addMsg = (msg) =>{
+        const html =`
+        <div class="message">
+          <span class="author">${msg.author}</span><br>
+          <span class="msg-body">${renderMsg(msg.msgType, msg.message)}</span>
+        </div>`
+        $('.messages').append(html)
+      }
+
       //recebe a lista inicial de rooms
       socket.on('roomList', rooms =>{
         console.log(rooms)
@@ -137,8 +177,30 @@
           addRoom(room._id, room.name)
         })
       })
+
       // recebe a msg do servidor
       socket.on('newMsg', msg => {
+        //só add a msg se a sala estiver selecionada
+        if(selectedRoom === msg.room){
+          addMsg(msg)
+        }else{
+          //atualizar contador de msgs 
+          const id = msg.room
+          let count = parseInt($('#'+id+' .notifications span').text())
+          count++
+          $('#'+id+' .notifications span').text(count)
+        }
+        console.log(msg)
+      })
+
+      socket.on('msgsList', msgs =>{
+        $('.messages').html('')
+        msgs.map(addMsg)
+        console.log(msgs)
+      })
+
+       // recebe a o audio do servidor
+       socket.on('newAudio', msg => {
         //só add a msg se a sala estiver selecionada
         if(selectedRoom === msg.room){
           addMsg(msg)
@@ -147,11 +209,7 @@
         }
         console.log(msg)
       })
-      socket.on('msgsList', msgs =>{
-        $('.messages').html('')
-        msgs.map(addMsg)
-        console.log(msgs)
-      })
+
       //ouve o evento click no botaao para add
       $('.add-room').click(function(){
         const roomName = prompt('Informe o nome da sala')
@@ -160,6 +218,7 @@
           socket.emit('addRoom', roomName)
         }
       })
+
     })
   </script>
 </body>
