@@ -63,6 +63,15 @@ io.on('connection', socket => {
       io.emit('newRoom', room)
     })
   })
+  //join, entrar na sala
+  socket.on('join', roomId => {
+    socket.join(roomId)
+    console.log('join join')
+  })
+
+  socket.on('sendMsg', msg =>{
+    console.log(msg)
+  })
 })
 
 //servidor só inicia apos o mongo iniciar
