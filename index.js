@@ -26,7 +26,18 @@ const expressSession = session({
   }
 })
 app.use(expressSession)
+//pega a session do express e passa pro socket
 io.use(sharedSession(expressSession,{autoSave: true}))
+//bloqueando acesso indevido via socket
+io.use((socket, next) =>{
+  const session = socket.handshake.session
+  if(!session.user){
+    next(new Error('auth failed.'))
+  }else{
+    next()
+  }
+  console.log(session)
+})
 
 app.get('/',(req, res) => {
   res.render('home')
@@ -54,6 +65,7 @@ app.get('/room', (req, res) => {
 
 //pegando o evento de conexao, tratar e criar a sala
 io.on('connection', socket => {
+  console.log('conectou', socket.id)
     //pegando as salas e enviando pro usuario
   Room.find({},(err, rooms) =>{
     socket.emit('roomList', rooms)
