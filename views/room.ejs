@@ -81,21 +81,35 @@
         selectedRoom = roomId
       })
 
+      //Exibe a nova sala na lista do html
       const addRoom = (id, roomName) =>{
         $('.room-list').append('<li data-id="'+id+'" class="room-item">'+roomName+'<span class="notifications"> (2)</span></li>')
-
       }
-      //exibe a nova sala
+      //Exibe a msg no html
+      const addMsg = (msg) =>{
+        const html =`
+        <div class="message">
+          <span class="author">${msg.author}</span><br>
+          <span class="msg-body">${msg.message}</span>
+        </div>`
+        $('.messages').append(html)
+      }
+      //recebe uma nova sala
       socket.on('newRoom',room =>{
         addRoom(room._id, room.name)
       })
-      //exibe as salas para o usuario
+      //recebe a lista inicial de rooms
       socket.on('roomList', rooms =>{
         console.log(rooms)
         $('.room-list').html('')
         rooms.map( room => {
           addRoom(room._id, room.name)
         })
+      })
+      // recebe a msg do servidor
+      socket.on('newMsg', msg => {
+        addMsg(msg)
+        console.log(msg)
       })
       //ouve o evento click no botaao para add
       $('.add-room').click(function(){
