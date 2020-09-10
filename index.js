@@ -9,6 +9,7 @@ const io = require('socket.io')(http)
 const sharedSession = require('express-socket.io-session')
 
 const Room = require('./models/room')
+const Message = require('./models/message')
 
 mongoose.Promise = global.Promise 
 app.use(express.static('public'))
@@ -17,15 +18,15 @@ app.use(bodyParser.urlencoded())
 app.set('view engine', 'ejs')
 
 //compartilhar session do express com o socket para obter nome do usuario mais afrente
-const session = session({
+const expressSession = session({
   secret: 'meuSegredo',
   name:"sessionID",
   cookie: {
     maxAge: 10*60*1000
   }
 })
-app.use(session)
-io.use(sharedSession(session,{autoSave: true}))
+app.use(expressSession)
+io.use(sharedSession(expressSession,{autoSave: true}))
 
 app.get('/',(req, res) => {
   res.render('home')
@@ -75,7 +76,16 @@ io.on('connection', socket => {
   })
 
   socket.on('sendMsg', msg =>{
-    console.log(msg)
+    const message = new Message({
+      author: socket.handshake.session.user.name,
+      when: new Date(),
+      msgType: 'text',
+      message: msg.msg,
+      room: msg.room
+    })
+    message.save()
+    // console.log(msg)
+    // console.log(socket.handshake.session)
   })
 })
 
