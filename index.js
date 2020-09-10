@@ -1,26 +1,31 @@
-const express = require('express')
-const app = express()
-const bodyParser = require('body-parser')
-const session = require('express-session')
-const mongoose = require('mongoose')
-mongoose.Promise = global.Promise 
 require('dotenv/config')
+const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
+const express = require('express')
+const session = require('express-session')
+const app = express()
 const http = require('http').Server(app)
 const io = require('socket.io')(http)
+const sharedSession = require('express-socket.io-session')
 
 const Room = require('./models/room')
 
+mongoose.Promise = global.Promise 
 app.use(express.static('public'))
 app.use(bodyParser.json({extended: true}))
 app.use(bodyParser.urlencoded())
 app.set('view engine', 'ejs')
-app.use(session({
+
+//compartilhar session do express com o socket para obter nome do usuario mais afrente
+const session = session({
   secret: 'meuSegredo',
   name:"sessionID",
   cookie: {
     maxAge: 10*60*1000
   }
-}))
+})
+app.use(session)
+io.use(sharedSession(session,{autoSave: true}))
 
 app.get('/',(req, res) => {
   res.render('home')
