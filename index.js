@@ -83,7 +83,11 @@ io.on('connection', socket => {
       message: msg.msg,
       room: msg.room
     })
-    message.save()
+    message
+    .save()
+    .then(() => {
+      io.to(msg.room).emit('newMsg', message)
+    })
     // console.log(msg)
     // console.log(socket.handshake.session)
   })
