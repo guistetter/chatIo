@@ -108,8 +108,18 @@
       })
       // recebe a msg do servidor
       socket.on('newMsg', msg => {
-        addMsg(msg)
+        //só add a msg se a sala estiver selecionada
+        if(selectedRoom === msg.room){
+          addMsg(msg)
+        }else{
+          //atualizar contador de msgs nao lidas
+        }
         console.log(msg)
+      })
+      socket.on('msgsList', msgs =>{
+        $('.messages').html('')
+        msgs.map(addMsg)
+        console.log(msgs)
       })
       //ouve o evento click no botaao para add
       $('.add-room').click(function(){
