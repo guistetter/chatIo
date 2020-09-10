@@ -33,7 +33,13 @@
         <div class="message"><span class="author">Guilherme Martins Stetter</span><br><span class="msg-body">Mensagem aqui</span></div>
       </div>
       <div class="new-message-form w-form">
-        <form id="email-form" name="email-form" data-name="Email Form" class="form"><textarea id="field" name="field" maxlength="5000" placeholder="Digite sua mensagem e pressione &lt;Enter&gt;" autofocus="true" class="msg w-input"></textarea><a href="#" class="send-audio w-button">Enviar<br>Áudio</a></form>
+        <form class="form">
+          <textarea id="field" name="field" maxlength="5000" 
+          placeholder="Digite sua mensagem e pressione &lt;Enter&gt;" 
+          autofocus="true" class="msg w-input">
+          </textarea>
+          <a href="#" class="send-audio w-button">Enviar<br>Áudio</a>
+        </form>
         <div class="w-form-done">
           <div>Thank you! Your submission has been received!</div>
         </div>
@@ -56,10 +62,23 @@
       //conectar no socket
       const socket = io()
       let selectedRoom = ''
+      $('.msg').keyup(function(key){
+        console.log(key.keyCode)
+        if(selectedRoom !== '' && key.keyCode === 13){
+           //enviar msg no enter
+          socket.emit('sendMsg', {
+            msg: $('.msg').val(),
+            room: selectedRoom
+          })
+          $('.msg').val('')
+        }
+      })
       
       //clicar em uma sala e entrar nela
       $('.room-list').on('click', '.room-item', function(){
-        socket.emit('join', $(this).attr('data-id'))
+        const roomId = $(this).attr('data-id')
+        socket.emit('join',roomId) 
+        selectedRoom = roomId
       })
 
       const addRoom = (id, roomName) =>{
