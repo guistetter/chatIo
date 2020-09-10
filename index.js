@@ -122,7 +122,7 @@ io.on('connection', socket => {
       author: socket.handshake.session.user.name,
       when: new Date(),
       msgType: 'audio',
-      message: JSON.stringify(msg.data),
+      message: msg.data,
       room: msg.room
     })
     message
