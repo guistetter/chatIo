@@ -72,6 +72,13 @@ io.on('connection', socket => {
   //join, entrar na sala
   socket.on('join', roomId => {
     socket.join(roomId)
+    //passa a lista de todas as msgs contidas na sala clicada
+    Message
+    .find({room: roomId})
+    .then(msgs => { 
+      //console.log(msgs)
+      socket.emit('msgsList', msgs)
+    })
     console.log('join join')
   })
 
