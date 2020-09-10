@@ -38,14 +38,8 @@
           placeholder="Digite sua mensagem e pressione &lt;Enter&gt;" 
           autofocus="true" class="msg w-input">
           </textarea>
-          <a href="#" class="send-audio w-button">Enviar<br>Áudio</a>
+          <button type="button" class="send-audio w-button">Enviar<br>Áudio</button>
         </form>
-        <div class="w-form-done">
-          <div>Thank you! Your submission has been received!</div>
-        </div>
-        <div class="w-form-fail">
-          <div>Oops! Something went wrong while submitting the form.</div>
-        </div>
       </div>
     </div>
   </div>
@@ -62,6 +56,43 @@
       //conectar no socket
       const socket = io()
       let selectedRoom = ''
+      //pegar permission para audio
+      let audioPermission = false
+      let mediRecorder
+
+      navigator.mediaDevices
+        .getUserMedia({audio:true})
+        .then(stream => {
+          audioPermission = true
+          mediaRecorder = new MediaRecorder(stream)
+          mediaRecorder.ondataavailable = data => {
+            //data received
+            console.log(data.data)
+          }
+          mediaRecorder.onstrop = () => {
+            //data stopped
+            console.log('audioRecorder stopped')
+          }
+          console.log('Ok audio permitido')
+        }, err => {
+          mediaRecorder = null
+          audioPermission = false
+          console.log('Audio nao permitido')
+        })
+
+      $('.send-audio')
+      .mouseup(function(){
+        console.log('up')
+        if(audioPermission){
+          mediaRecorder.stop()
+        }
+      })
+      .mousedown(function(){
+        console.log('down')
+        if(audioPermission){
+          mediaRecorder.start()
+        }
+      })
       $('.msg').keyup(function(key){
         console.log(key.keyCode)
         if(selectedRoom !== '' && key.keyCode === 13){
