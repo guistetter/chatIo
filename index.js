@@ -25,9 +25,12 @@ const expressSession = session({
     maxAge: 10*60*1000
   }
 })
+
 app.use(expressSession)
+
 //pega a session do express e passa pro socket
 io.use(sharedSession(expressSession,{autoSave: true}))
+
 //bloqueando acesso indevido via socket
 io.use((socket, next) =>{
   const session = socket.handshake.session
@@ -66,10 +69,12 @@ app.get('/room', (req, res) => {
 //pegando o evento de conexao, tratar e criar a sala
 io.on('connection', socket => {
   console.log('conectou', socket.id)
+
     //pegando as salas e enviando pro usuario
   Room.find({},(err, rooms) =>{
     socket.emit('roomList', rooms)
   })
+
     //salvando a nova sala no banco
   socket.on('addRoom',roomName =>{
     console.log('addRoomm', roomName)
@@ -81,6 +86,7 @@ io.on('connection', socket => {
       io.emit('newRoom', room)
     })
   })
+
   //join, entrar na sala
   socket.on('join', roomId => {
     socket.join(roomId)
@@ -110,6 +116,24 @@ io.on('connection', socket => {
     // console.log(msg)
     // console.log(socket.handshake.session)
   })
+
+  socket.on('sendAudio', msg =>{
+    const message = new Message({
+      author: socket.handshake.session.user.name,
+      when: new Date(),
+      msgType: 'audio',
+      message: JSON.stringify(msg.data),
+      room: msg.room
+    })
+    message
+    .save()
+    .then(() => {
+      io.to(msg.room).emit('newAudio', message)
+    })
+    // console.log(msg)
+    // console.log(socket.handshake.session)
+  })
+  
 })
 
 //servidor só inicia apos o mongo iniciar
